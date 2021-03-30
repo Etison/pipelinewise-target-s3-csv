@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 import argparse
-import csv
 import gzip
+import csv
 import io
 import json
 import os
@@ -102,15 +102,16 @@ def persist_messages(messages, config, s3_client):
                 headers[o['stream']] = flattened_record.keys()
 
             with open(filename, 'a') as csvfile:
-                writer = csv.DictWriter(csvfile,
-                                        headers[o['stream']],
-                                        extrasaction='ignore',
-                                        delimiter=delimiter,
-                                        quotechar=quotechar)
                 if file_is_empty:
-                    writer.writeheader()
+                    header = ','.join([ json.dumps(v) for v in headers[o['stream']] ])  + "\n"
+                    header = header.encode('UTF-8')
+                    csvfile.write(header)
 
-                writer.writerow(flattened_record)
+
+                row = ','.join([ json.dumps(flattened_record[k]) for k in headers[o['stream']] ])  + "\n"
+                row = row.encode('UTF-8')
+
+                csvfile.write(row)
 
             state = None
         elif message_type == 'STATE':
