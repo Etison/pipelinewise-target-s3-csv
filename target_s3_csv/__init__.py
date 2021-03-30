@@ -104,12 +104,12 @@ def persist_messages(messages, config, s3_client):
             with open(filename, 'a') as csvfile:
                 if file_is_empty:
                     header = ','.join([ json.dumps(v) for v in headers[o['stream']] ])  + "\n"
-                    header = header.encode('UTF-8')
+                    # header = header.encode('UTF-8')
                     csvfile.write(header)
 
 
                 row = ','.join([ json.dumps(flattened_record[k]) for k in headers[o['stream']] ])  + "\n"
-                row = row.encode('UTF-8')
+                # row = row.encode('UTF-8')
 
                 csvfile.write(row)
 
