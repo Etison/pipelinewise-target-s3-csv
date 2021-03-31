@@ -9,6 +9,7 @@ import os
 import shutil
 import sys
 import tempfile
+import decimal
 from datetime import datetime
 
 import singer
@@ -19,6 +20,10 @@ from target_s3_csv import utils
 
 logger = singer.get_logger('target_s3_csv')
 
+def decimal_default(obj):
+    if isinstance(obj, decimal.Decimal):
+        return float(obj)
+    raise TypeError
 
 def emit_state(state):
     if state is not None:
@@ -103,12 +108,12 @@ def persist_messages(messages, config, s3_client):
 
             with open(filename, 'a') as csvfile:
                 if file_is_empty:
-                    header = ','.join([ json.dumps(v, ensure_ascii=False) for v in headers[o['stream']] ])  + "\n"
+                    header = ','.join([ json.dumps(v, ensure_ascii=False, default=decimal_default) for v in headers[o['stream']] ])  + "\n"
                     # header = header.encode('UTF-8')
                     csvfile.write(header)
 
 
-                row = ','.join([ json.dumps(flattened_record[k], ensure_ascii=False) for k in headers[o['stream']] ])  + "\n"
+                row = ','.join([ json.dumps(flattened_record[k], ensure_ascii=False, default=decimal_default) for k in headers[o['stream']] ])  + "\n"
                 # row = row.encode('UTF-8')
 
                 csvfile.write(row)
