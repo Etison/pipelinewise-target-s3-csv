@@ -4,7 +4,7 @@ import argparse
 import gzip
 import csv
 import io
-import simplejson as json
+import json
 import os
 import shutil
 import sys
