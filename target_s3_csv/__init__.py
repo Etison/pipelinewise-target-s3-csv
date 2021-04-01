@@ -189,7 +189,7 @@ def main():
         config = {}
 
     if args.targets:
-        target_file = args.target
+        target_file = args.targets
     else:
         target_file = './targets.json'
 
