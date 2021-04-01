@@ -138,6 +138,7 @@ def persist_messages(messages, config, s3_client):
                             .format(o['type'], o))
 
     # Upload created CSV files to S3
+    targets = []
     for filename, target_key in filenames:
         compressed_file = None
         if config.get("compression") is None or config["compression"].lower() == "none":
@@ -167,12 +168,18 @@ def persist_messages(messages, config, s3_client):
         if compressed_file:
             os.remove(compressed_file)
 
-    return state
+        targets.append(target_key)
+
+    return state, targets
+
+def emit_targets(targets, target_file):
+    json.dump(targets, open(target_file, 'w'))
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', help='Config file')
+    parser.add_argument('-t', '--targets', help='Target file for keys')
     args = parser.parse_args()
 
     if args.config:
@@ -180,6 +187,11 @@ def main():
             config = json.load(input_json)
     else:
         config = {}
+
+    if args.targets:
+        target_file = args.target
+    else:
+        target_file = './targets.json'
 
     config_errors = utils.validate_config(config)
     if len(config_errors) > 0:
@@ -189,9 +201,11 @@ def main():
     s3_client = s3.create_client(config)
 
     input_messages = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8')
-    state = persist_messages(input_messages, config, s3_client)
+    state, targets = persist_messages(input_messages, config, s3_client)
 
     emit_state(state)
+    emit_targets(targets, target_file)
+
     logger.debug("Exiting normally")
 
 
