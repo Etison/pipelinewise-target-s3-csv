@@ -146,10 +146,14 @@ def persist_messages(messages, config, s3_client):
         else:
             if config["compression"] == "gzip":
                 compressed_file = f"{filename}.gz"
-                with open(filename, 'rb') as f_in:
-                    with gzip.open(compressed_file, 'wb') as f_out:
-                        logger.info(f"Compressing file as '{compressed_file}'")
-                        shutil.copyfileobj(f_in, f_out)
+                try:
+                    with open(filename, 'rb') as f_in:
+                        with gzip.open(compressed_file, 'wb') as f_out:
+                            logger.info(f"Compressing file as '{compressed_file}'")
+                            shutil.copyfileobj(f_in, f_out)
+                except FileNotFoundError:
+                    logger.error("Could not find file (most likely already in AWS): {}".format(filename))
+
             else:
                 raise NotImplementedError(
                     "Compression type '{}' is not supported. "
